@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import tensorflow as tf
-from scipy import ndimage
 
 # config
 GPU0 = '/gpu:0'
@@ -13,7 +12,6 @@ class Shape_complete():
         '''
         Constructor of the Shape_complete class. Load the model from 'model_path'.
         INPUT: verbose: print messages for debug
-
         '''
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
@@ -87,6 +85,7 @@ def demo():
     import binvox_rw
     # Constructor
     sc = Shape_complete(verbose=True)
+    
     # Read demo binvox as (64*64*64) array
     with open('demo/_5_5_5_3_occupy.binvox', 'rb') as f:
         occ = binvox_rw.read_as_3d_array(f).data
