@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import numpy as np
 import tensorflow as tf
@@ -41,8 +42,8 @@ class Shape_complete():
         if not occ.shape == non.shape:
             raise ValueError('Error! Wrong dimensions')
         if occ.ndim == 3 and occ.ndim == 3:
+            out_dim = 3
             if verbose:
-                out_dim = 3
                 print('Get input as single voxel')
             assert(occ.shape == (RESOLUTION,RESOLUTION,RESOLUTION))
             assert(non.shape == (RESOLUTION,RESOLUTION,RESOLUTION))
@@ -51,8 +52,8 @@ class Shape_complete():
             occ = np.expand_dims(occ,4)
             non = np.expand_dims(non,4)
         elif occ.ndim == 4 and non.ndim == 4:
+            out_dim = 4
             if verbose:
-                out_dim = 4
                 print('Get input as batches. Batch size: {}'.format(occ.shape[0]))
             assert(occ.shape[-3:] == (RESOLUTION,RESOLUTION,RESOLUTION))
             assert(non.shape[-3:] == (RESOLUTION,RESOLUTION,RESOLUTION))
@@ -86,15 +87,15 @@ def demo():
     '''
     import binvox_rw
     # Constructor
-    sc = Shape_complete(verbose=True)
+    sc = Shape_complete(verbose=False)
     # Read demo binvox as (64*64*64) array
-    with open('demo/_5_5_5_3_occupy.binvox', 'rb') as f:
+    with open('demo/occupy.binvox', 'rb') as f:
         occ = binvox_rw.read_as_3d_array(f).data
-    with open('demo/_5_5_5_3_non_occupy.binvox', 'rb') as f:
+    with open('demo/non_occupy.binvox', 'rb') as f:
         non = binvox_rw.read_as_3d_array(f).data
 
     # Complete shape
-    out = sc.complete(occ=occ,non=non,verbose=True)
+    out = sc.complete(occ=occ,non=non,verbose=False)
 
     # Save to file for demo
     vox = binvox_rw.Voxels(out, [64,64,64], [0,0,0], 1, 'xyz')
