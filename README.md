@@ -14,8 +14,10 @@
 
 
 ## Prerequisites
-- [`CUDA`](https://developer.nvidia.com/cuda-toolkit) 9.0
+The codes are tested on
+- [`CUDA`](https://developer.nvidia.com/cuda-toolkit) 9.0 
 - [`Python`](https://www.python.org) 2.7.12
 - [`TensorFlow`](https://github.com/tensorflow/tensorflow) 1.7.0
+- [`numpy`](http://www.numpy.org/) 1.14.2
 
 
