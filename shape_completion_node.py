@@ -10,6 +10,7 @@ import numpy as np
 
 DIM = 64
 
+
 def callback(msg, args):
     sc = args[0]
     pub = args[1]
@@ -29,6 +30,7 @@ def callback(msg, args):
     out_msg.layout.dim.append(MultiArrayDimension(label='z', size=DIM, stride=DIM))
     pub.publish(out_msg)
 
+
 def listener():
     rospy.init_node('shape_completer')
 
@@ -37,6 +39,7 @@ def listener():
     pub = rospy.Publisher('local_occupancy_predicted', numpy_msg(ByteMultiArray), queue_size=10)
     rospy.Subscriber("local_occupancy", numpy_msg(ByteMultiArray), callback, (sc, pub))
     rospy.spin()
+
 
 if __name__ == '__main__':
     listener()

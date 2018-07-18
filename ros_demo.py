@@ -14,6 +14,7 @@ import binvox_rw
 
 DIM = 64
 
+
 def callback(msg):
     arr = np.reshape(msg.data, tuple(d.size for d in msg.layout.dim))
     print rospy.get_name(), "I heard %s"%str(arr)
@@ -26,12 +27,12 @@ def callback(msg):
     
     rospy.signal_shutdown("Got result.")
 
+
 def demo():
     '''
     Publish sample data to ROS
     '''
-    import binvox_rw
-    
+
     # Read demo binvox as (64*64*64) array
     with open('demo/occupy.binvox', 'rb') as f:
         occ = binvox_rw.read_as_3d_array(f).data
@@ -51,6 +52,7 @@ def demo():
     time.sleep(5)
     pub.publish(msg)
     rospy.spin()
+
 
 if __name__ == '__main__':
     demo()
