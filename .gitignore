@@ -1,2 +1,3 @@
-*.pyc
-output.binvox
+*.pyc 
+output.binvox 
+train_mod
