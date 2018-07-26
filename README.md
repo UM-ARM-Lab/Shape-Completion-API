@@ -1,5 +1,7 @@
 # Shape-completion
 
+The current model can be downloaded from [link](https://drive.google.com/file/d/1Kmij09eHVE3ab5s7Vnp-fI-qOCLei4u0/view?usp=sharing). Please put it in `train_mod` folder.
+
 ## Introduction
 - `shape_completion.py`: provides a class that uses the trained model to do shape completion.
 - `train_mod/`: contains the model.
