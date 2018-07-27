@@ -7,7 +7,9 @@ from rospy.numpy_msg import numpy_msg
 
 import rospy
 
+from datetime import datetime
 import numpy as np
+import time
 
 DIM = 64
 
@@ -20,7 +22,9 @@ def service_callback(req, args):
     occ = arr > 0
     non = arr < 0
 
-    out = sc.complete(occ=occ, non=non, verbose=False)
+    time_stamp = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S-%f")[:-3]
+    sc.save_input(occ, non, '.', time_stamp)
+    out = sc.complete(occ=occ, non=non, verbose=False, save=True, id=time_stamp, out_path='.')
 
     resp = CompleteShapeResponse()
     resp.hypothesis.data = out.flatten().tolist()
