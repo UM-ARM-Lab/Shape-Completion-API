@@ -1,3 +1,0 @@
-model_checkpoint_path: "model.cptk"
-all_model_checkpoint_paths: "../epoch_31/model.cptk"
-all_model_checkpoint_paths: "model.cptk"
