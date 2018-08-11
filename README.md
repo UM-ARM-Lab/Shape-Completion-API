@@ -18,6 +18,7 @@ The current model can be downloaded from [link](https://drive.google.com/file/d/
 ## Prerequisites
 The codes are tested on
 - [`CUDA`](https://developer.nvidia.com/cuda-toolkit) 9.0 
+- [`cuDNN`](https://developer.nvidia.com/rdp/cudnn-archive) 7.0.5
 - [`Python`](https://www.python.org) 2.7.12
 - [`TensorFlow`](https://github.com/tensorflow/tensorflow) 1.7.0
 - [`numpy`](http://www.numpy.org/) 1.14.2
