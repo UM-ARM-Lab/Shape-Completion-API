@@ -2,11 +2,10 @@
 import os
 import numpy as np
 import tensorflow as tf
-
-
+import time
 # config
 GPU0 = '/gpu:0'
-model_path = './train_mod/'
+model_path = './shape_complete/train_mod/'
 RESOLUTION = 64
 
 class Shape_complete():
@@ -18,6 +17,8 @@ class Shape_complete():
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
             tf.logging.set_verbosity(tf.logging.FATAL)
+        else:
+            t_prepare_begin = time.time()
 
         self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         self.saver = tf.train.import_meta_graph( model_path + 'model.cptk.meta', clear_devices=True)
@@ -26,11 +27,16 @@ class Shape_complete():
             print ('model restored!')
 
         self.X_occ = tf.get_default_graph().get_tensor_by_name("Placeholder:0")
-        self.X_non = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
+        try:
+            self.X_non = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
+        except DataLossError:
+            self.X_non = None
         self.Y_pred = tf.get_default_graph().get_tensor_by_name('aeu/Sigmoid:0')
-    
+        if verbose:
+            t_prepare_end = time.time()
+            print('time to initialize: {}'.format(t_prepare_end-t_prepare_begin))
 
-    def complete(self, occ, non, verbose = False, save = False, id = None, out_path = None):  
+    def complete(self, occ, non = None, verbose = False, save = False, id = None, out_path = None):
         '''
         Complete the 3d shape according to the occupied grids and non-occupied grids
         INPUT: occ: DATATYPE: bool. SHAPE: (64,64,64) for a single occupied grids OR (batch_size,64, 64, 64) for a batch of occupied grids
@@ -40,7 +46,10 @@ class Shape_complete():
         '''
         occ, non, out_dim = self._check_input(occ, non, verbose)
 
-        y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ: occ, self.X_non: non})
+        if non is None:
+            y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ:occ})
+        else:
+            y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ: occ, self.X_non: non})
 
         # Thresholding. Threshold sets to be 0.5
         th = 0.5
@@ -82,6 +91,24 @@ class Shape_complete():
         '''
         Check the format of input. Modify them to be in batch.
         '''
+        if non is None:
+            if occ.ndim == 3:
+                out_dim = 3
+                if verbose:
+                    print('Get input as single voxel')
+                assert(occ.shape == (RESOLUTION,RESOLUTION,RESOLUTION))
+                occ = np.expand_dims(occ, 0)
+                occ = np.expand_dims(occ, 4)
+            elif occ.ndim == 4:
+                out_dim = 4
+                if verbose:
+                    print('Get input as batches. Batch size: {}'.format(occ.shape[0]))
+                assert(occ.shape[-3:]==(RESOLUTION,RESOLUTION,RESOLUTION))
+                occ = np.expand_dims(occ,4)
+            else:
+                raise ValueError('Error! Wrong dimensions!')
+            return occ, None, out, dim
+
         if not occ.shape == non.shape:
             raise ValueError('Error! Wrong dimensions')
         if occ.ndim == 3 and non.ndim == 3:
@@ -116,8 +143,6 @@ class Shape_complete():
         
     def __del__(self):
         self.sess.close()
-
-
 
 ###DEMO###
 
