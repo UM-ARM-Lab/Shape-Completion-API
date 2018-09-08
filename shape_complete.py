@@ -2,10 +2,10 @@
 import os
 import numpy as np
 import tensorflow as tf
-
+import time
 # config
 GPU0 = '/gpu:0'
-model_path = './train_mod/'
+model_path = './shape_complete/train_mod/'
 RESOLUTION = 64
 
 class Shape_complete():
@@ -17,6 +17,8 @@ class Shape_complete():
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
             tf.logging.set_verbosity(tf.logging.FATAL)
+        else:
+            t_prepare_begin = time.time()
 
         self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         self.saver = tf.train.import_meta_graph( model_path + 'model.cptk.meta', clear_devices=True)
@@ -25,11 +27,16 @@ class Shape_complete():
             print ('model restored!')
 
         self.X_occ = tf.get_default_graph().get_tensor_by_name("Placeholder:0")
-        self.X_non = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
+        try:
+            self.X_non = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
+        except DataLossError:
+            self.X_non = None
         self.Y_pred = tf.get_default_graph().get_tensor_by_name('aeu/Sigmoid:0')
-    
+        if verbose:
+            t_prepare_end = time.time()
+            print('time to initialize: {}'.format(t_prepare_end-t_prepare_begin))
 
-    def complete(self ,occ, non, verbose = False):  
+    def complete(self, occ, non = None, verbose = False, save = False, id = None, out_path = None):
         '''
         Complete the 3d shape according to the occupied grids and non-occupied grids
         INPUT: occ: DATATYPE: bool. SHAPE: (64,64,64) for a single occupied grids OR (batch_size,64, 64, 64) for a batch of occupied grids
@@ -37,9 +44,74 @@ class Shape_complete():
         INPUT: verbose: DATATYPE: bool. give some messages for debug
         OUTPUT: completed shape: DATATYPE: bool. SHAPE (64,64,64) for a single occupied grids OR (batch_size,64, 64, 64) for a batch of occupied grids
         '''
+        occ, non, out_dim = self._check_input(occ, non, verbose)
+
+        if non is None:
+            y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ:occ})
+        else:
+            y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ: occ, self.X_non: non})
+
+        # Thresholding. Threshold sets to be 0.5
+        th = 0.5
+        y_pred[y_pred >= th] = 1
+        y_pred[y_pred < th] = 0
+
+        if out_dim == 4:
+            if save:
+                if id is None:
+                    id = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S-%f")[:-3]
+                for idx, y in enumerate(y_pred[:,:,:,:,0]):
+                    th = 0.5
+                    y[y >= th] = 1
+                    y[y < th] = 0
+                    self._save_grid(y, os.path.join(out_path, 'out_' + id + '_' + idx + '.binvox'), verbose)                    
+            return y_pred[:,:,:,:,0]
+        elif out_dim == 3:
+            if save:
+                if id is None:
+                    id = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S-%f")[:-3]
+                th = 0.5
+                y_temp = np.copy(y_pred[0,:,:,:,0])
+                y_temp[y_temp >= th] = 1
+                y_temp[y_temp < th] = 0
+                self._save_grid(y_temp, os.path.join(out_path, 'out_' + id + '.binvox'), verbose)
+            return y_pred[0,:,:,:,0]
+        else:
+            raise ValueError('Internal error')
+
+    def save_input(self, occ, non, out_path, id = None, verbose = False):
+        occs, nons, out_dim = self._check_input(occ, non, verbose)
+        if id is None:
+            id = datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S-%f")[:-3]
+        for occ, non in zip(occs[:,:,:,:,0], nons[:,:,:,:,0]):
+            self._save_grid(occ, os.path.join(out_path, 'in_occ_' + id + '.binvox'), verbose)
+            self._save_grid(non, os.path.join(out_path, 'in_non_' + id + '.binvox'), verbose)
+
+    def _check_input(self, occ, non, verbose = False):
+        '''
+        Check the format of input. Modify them to be in batch.
+        '''
+        if non is None:
+            if occ.ndim == 3:
+                out_dim = 3
+                if verbose:
+                    print('Get input as single voxel')
+                assert(occ.shape == (RESOLUTION,RESOLUTION,RESOLUTION))
+                occ = np.expand_dims(occ, 0)
+                occ = np.expand_dims(occ, 4)
+            elif occ.ndim == 4:
+                out_dim = 4
+                if verbose:
+                    print('Get input as batches. Batch size: {}'.format(occ.shape[0]))
+                assert(occ.shape[-3:]==(RESOLUTION,RESOLUTION,RESOLUTION))
+                occ = np.expand_dims(occ,4)
+            else:
+                raise ValueError('Error! Wrong dimensions!')
+            return occ, None, out, dim
+
         if not occ.shape == non.shape:
             raise ValueError('Error! Wrong dimensions')
-        if occ.ndim == 3 and occ.ndim == 3:
+        if occ.ndim == 3 and non.ndim == 3:
             out_dim = 3
             if verbose:
                 print('Get input as single voxel')
@@ -59,23 +131,18 @@ class Shape_complete():
             non = np.expand_dims(non,4)
         else:
             raise ValueError('Error! Wrong dimensions')
-        y_pred = self.sess.run(self.Y_pred, feed_dict={self.X_occ: occ, self.X_non: non})
+        return occ, non, out_dim
 
-        # Thresholding. Threshold sets to be 0.5
-        th = 0.5
-        y_pred[y_pred >= th] = 1
-        y_pred[y_pred < th] = 0
-
-        if out_dim == 4:
-            return y_pred[:,:,:,0]
-        elif out_dim == 3:
-            return y_pred[0,:,:,:,0]
-        else:
-            raise ValueError('Internal error')
+    def _save_grid(self, grids, path_and_name, verbose = False, resolution = RESOLUTION):
+        import binvox_rw
+        vox = binvox_rw.Voxels(grids, [RESOLUTION, RESOLUTION, RESOLUTION], [0, 0, 0], 1, 'xyz')
+        with open(path_and_name, 'wb') as f:
+            vox.write(f)
+            if verbose:
+                print('Output saved to ' + path_and_name + '.')
+        
     def __del__(self):
         self.sess.close()
-
-
 
 ###DEMO###
 

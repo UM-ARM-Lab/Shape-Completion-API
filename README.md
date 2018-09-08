@@ -1,5 +1,7 @@
 # Shape-completion
 
+The current model can be downloaded from [link](https://drive.google.com/file/d/1Kmij09eHVE3ab5s7Vnp-fI-qOCLei4u0/view?usp=sharing). Please put it in `train_mod` folder.
+
 ## Introduction
 - `shape_completion.py`: provides a class that uses the trained model to do shape completion.
 - `train_mod/`: contains the model.
@@ -16,6 +18,7 @@
 ## Prerequisites
 The codes are tested on
 - [`CUDA`](https://developer.nvidia.com/cuda-toolkit) 9.0 
+- [`cuDNN`](https://developer.nvidia.com/rdp/cudnn-archive) 7.0.5
 - [`Python`](https://www.python.org) 2.7.12
 - [`TensorFlow`](https://github.com/tensorflow/tensorflow) 1.7.0
 - [`numpy`](http://www.numpy.org/) 1.14.2
