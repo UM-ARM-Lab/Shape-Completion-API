@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from shape_complete import Shape_complete
-from std_msgs.msg import ByteMultiArray, MultiArrayDimension
-from mps_voxels.srv import CompleteShape, CompleteShapeRequest, CompleteShapeResponse
+from std_msgs.msg import ByteMultiArray, Float32MultiArray, MultiArrayDimension
+from mps_msgs.srv import CompleteShape, CompleteShapeRequest, CompleteShapeResponse
 from rospy.numpy_msg import numpy_msg
 
 import rospy
