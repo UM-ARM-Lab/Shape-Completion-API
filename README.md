@@ -13,7 +13,13 @@ The current model can be downloaded from [link](https://drive.google.com/file/d/
 
 ![](https://github.com/UM-ARM-Lab/Shape-completion/blob/master/train_mod/training_set.png)
 
+## Train a new model
+- `cd train`
+- `python main_3D-RecGAN++.py`
 
+## Evaluate a model
+We use [chamfer-distance](https://github.com/UM-ARM-Lab/Chamfer-Distance-API) as evaluation metric.
+- `python evaluate.py`
 
 ## Prerequisites
 The codes are tested on
