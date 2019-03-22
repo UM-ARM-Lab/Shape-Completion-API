@@ -12,7 +12,7 @@ import shape_complete
 import time
 import tools
 
-data_path = './demo_dataset/'
+data_path = './train/demo_dataset/'
 result_path = './evaluation_result/'
 vox_res64 = 64
 batch_size = 22
@@ -80,7 +80,7 @@ def load_X_Y_voxel_grids(X_data_files_occ, X_data_files_non, Y_data_files, Known
         Known_grid = tools.Data.load_single_voxel_grid(k_f, out_vox_res=vox_res_x)
         Known_grids.append(Known_grid)
 
-        Y_mask = get_train_mask(Y_voxel_grid,3,False)       
+        Y_mask = get_train_mask(Y_voxel_grid,3,False)
         Y_masks.append(Y_mask)
 
     X_voxel_grids_occ = np.asarray(X_voxel_grids_occ)
@@ -106,7 +106,7 @@ def evaluate():
         test_files_x_non = [x_name[0:find_nth(x_name,'_',5)]+'_non_occupy.binvox' for x_name in test_files_x_occ]
         test_files_y = [x_name[0:find_nth(x_name,'_',5)]+'_gt.binvox' for x_name in test_files_x_occ]
         test_files_known = [x_name[0:find_nth(x_name,'_',5)]+'_mask.binvox' for x_name in test_files_x_occ]
-        
+
 
         batches_x_occ = [test_files_x_occ[i:i + batch_size] for i in xrange(0, len(test_files_x_occ), batch_size)]
         batches_x_non = [test_files_x_non[i:i + batch_size] for i in xrange(0, len(test_files_x_non), batch_size)]
@@ -148,21 +148,19 @@ def evaluate():
                 # print('iou: {}'.format(iou))
 
                 if SAVE_RESULT:
-                    verbose_file_iou.write('{0}: {1}\n'.format(name, iou))                        
-                    verbose_file_cd.write('{0}: {1}\n'.format(name, cd)) 
+                    verbose_file_iou.write('{0}: {1}\n'.format(name, iou))
+                    verbose_file_cd.write('{0}: {1}\n'.format(name, cd))
                     vox = binvox_rw.Voxels(ot, [64,64,64], [0,0,0], 1, 'xyz')
                     with open(result_path+test_name+'/'+name,'wb') as f:
                         vox.write(f)
         if SAVE_RESULT:
             verbose_file_iou.close()
             verbose_file_cd.close()
-        
-                
-               
+
+
+
 
 
 
 if __name__ == '__main__':
     evaluate()
-
-
