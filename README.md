@@ -1,3 +1,5 @@
+#Deprecated
+
 # Shape-completion
 
 The current model can be downloaded from [link](https://drive.google.com/file/d/1Kmij09eHVE3ab5s7Vnp-fI-qOCLei4u0/view?usp=sharing). Please put it in `train_mod` folder.
